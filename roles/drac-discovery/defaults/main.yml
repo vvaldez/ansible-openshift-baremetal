@@ -1,0 +1,11 @@
+---
+drac_discovery_hostname: server1.example.com
+drac_discovery_username: root
+drac_discovery_password: calvin
+drac_discovery_validate_certs: false
+drac_discovery_role: master
+drac_discovery_clustername: example1
+drac_discovery_ipaddress: 127.0.0.1
+drac_discovery_credentials: example1-drac-credentials
+# drac_discovery_macaddress:
+...

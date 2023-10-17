@@ -1,0 +1,19 @@
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  annotations:
+    bmac.agent-install.openshift.io/hostname: {{ drac_discovery_hostname }}
+    bmac.agent-install.openshift.io/role: {{ drac_discovery_role }}
+  labels:
+    infraenvs.agent-install.openshift.io: {{ drac_discovery_clustername }}
+    cluster-name: {{ drac_discovery_clustername }}
+  name: {{ drac_discovery_hostname }}
+spec:
+  automatedCleaningMode: metadata
+  bmc:
+    address: "idrac-virtualmedia://{{ drac_discovery_ipaddress }}/redfish/v1/Systems/System.Embedded.1"
+    credentialsName: {{ drac_discovery_credentials }}
+    disableCertificateVerification: true
+  bootMACAddress: {{ drac_discovery_macaddress }}
+  online: true
