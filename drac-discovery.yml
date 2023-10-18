@@ -10,14 +10,14 @@
       ansible.builtin.file:
         path: "{{ config_directory }}"
         state: absent
-      run_once: true
+      run_once: yes
 
     - name: Setup temporary directory to hold config files
       ansible.builtin.file:
         path: "{{ config_directory }}/fragments/"
         state: directory
         mode: u+rw
-      run_once: true
+      run_once: yes
 
     - name: Imclude Dell DRAC discovery role
       ansible.builtin.include_role:
@@ -38,5 +38,5 @@
       ansible.builtin.assemble:
         src: "{{ config_directory }}/fragments/"
         dest: "{{ config_directory }}/bare-metal.yaml"
-
+      run_once: yes
 ...
