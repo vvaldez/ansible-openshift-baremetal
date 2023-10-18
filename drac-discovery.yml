@@ -3,11 +3,27 @@
   hosts: baremetal
   connection: local
   gather_facts: false
+  vars:
+    config_directory: "{{ playbook_dir }}/configs/"
   tasks:
+    - name: Remove any temporary directory
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: absent
+      run_once: true
+
+    - name: Setup temporary directory to hold config files
+      ansible.builtin.file:
+        path: "{{ config_directory }}/fragments/"
+        state: directory
+        mode: u+rw
+      run_once: true
+
     - name: Imclude Dell DRAC discovery role
       ansible.builtin.include_role:
         name: drac-discovery
       vars:
+        drac_discovery_config_output: "{{ config_directory }}/fragments/"
         drac_discovery_hostname: "{{ inventory_hostname }}"
         drac_discovery_username: "{{ oob_username }}"
         drac_discovery_password: "{{ oob_password }}"
@@ -17,4 +33,10 @@
         drac_discovery_credentials: "{{ drac_discovery_clustername }}-drac-credentials"
         drac_discovery_boot_device: "{{ boot_device }}"
         # drac_discovery_macaddress: "{{ boot_macaddr }}"
+
+    - name: Combine all templates into a single file
+      ansible.builtin.assemble:
+        src: "{{ config_directory }}/fragments/"
+        dest: "{{ config_directory }}/bare-metal.yaml"
+
 ...

@@ -18,17 +18,15 @@
           - "The following FQDD and associated MAC Address(es) were found."
           - "{{ r_system_info.system_info.NIC | map(attribute='FQDD') | zip(r_system_info.system_info.NIC | map(attribute='CurrentMACAddress')) }}"
 
-  always:
-    - name: Must speicify boot device
-      ansible.builtin.debug:
-        msg:
-          - "You must specify which of the discovered devices is used as the primary boot device."
-          - "Specify the correct FQDD boot device as the variable 'boot_device' for this host from the list above."
-
-- name: Exit play if no boot device specified # also need to count how many devices, if only one, no need
-  ansible.builtin.meta: end_play
-  when:
-    - drac_discovery_boot_device is not defined
+- name: Inform user to specify boot device if needed
+  ansible.builtin.assert:
+    that:
+      - drac_discovery_boot_device is defined
+    fail_msg:
+      - "You must specify which of the discovered devices is used as the primary boot device."
+      - "Specify the correct FQDD boot device as the variable 'boot_device' for this host from the list above."
+    success_msg:
+      - "Specified boot device of {{ drac_discovery_boot_device }} will be used to obtain a MAC Address."
 
 - name: Determine MAC Address
   when:
@@ -52,14 +50,7 @@
 - name: Template out config file with details
   ansible.builtin.template:
     src: baremetal-hosts.yaml.j2
-    dest: baremetal-hosts.yaml
+    dest: "{{ drac_discovery_config_output }}/{{ inventory_hostname }}.yaml"
     mode: u+r,g-rwx,o-rwx
-
-- name: Copy system info into a file
-  ansible.builtin.copy:
-    content: "{{ r_system_info.system_info.NIC }}"
-    dest: "{{ playbook_dir }}/{{ drac_discovery_ipaddress }}-system_info_nic.json"
-    mode: u+rw,g-rwx,o-rwx
-  when: debug_data | default(false)
 
 ...
