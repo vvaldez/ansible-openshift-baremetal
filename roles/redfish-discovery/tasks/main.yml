@@ -1,0 +1,64 @@
+---
+- name: Collect NIC data 
+  when: >
+    baremetal_boot_device is not defined or
+    baremetal_macaddress is not defined
+  block:
+    - name: Get NIC Information
+      community.general.redfish_info:
+        category: Systems
+        command: GetNicInventory
+        baseuri: "{{ baremetal_ipaddress }}"
+        username: "{{ baremetal_username }}"
+        password: "{{ baremetal_password }}"
+      register: r_facts
+
+    - name: Show debug information for NICs
+      ansible.builtin.debug:
+        var: r_facts.redfish_facts.nic.entries
+        verbosity: 1
+
+    - name: Show collected information for NICs
+      ansible.builtin.debug:
+        msg:
+          - "The following NIC Id and associated MAC Address(es) were found:"
+          - "{{ dict(r_facts.redfish_facts.nic.entries[0][1] | map(attribute='Id') | zip(r_facts.redfish_facts.nic.entries[0][1] | map(attribute='MACAddress', default='NONE'))) }}"
+
+- name: Inform user to specify boot device if needed
+  ansible.builtin.assert:
+    that:
+      - baremetal_boot_device is defined
+      - baremetal_boot_device != None
+      - baremetal_boot_device | length > 0
+    fail_msg:
+      - "You must specify which of the discovered devices is used as the primary boot device."
+      - "Specify the correct FQDD boot device as the variable 'boot_device' for this host from the list above."
+    success_msg:
+      - "Specified boot device of {{ baremetal_boot_device }} will be used to obtain a MAC Address."
+
+- name: Determine MAC Address
+  when:
+    - baremetal_macaddress is not defined
+  block:
+    - name: Obtain MAC Address for specified NIC boot device
+      ansible.builtin.set_fact:
+        baremetal_macaddress: >
+          "{{
+              (
+              r_facts.redfish_facts.nic.entries[0][1] |
+              selectattr('Id', 'equalto', baremetal_boot_device) |
+              items2dict(key_name='Id', value_name='MACAddress')
+              )[baremetal_boot_device]
+          }}"
+
+- name: "Display discovered MAC Address for NIC Id {{ baremetal_boot_device }}"
+  ansible.builtin.debug:
+    msg: "Found MAC Address {{ baremetal_macaddress.strip() }} for specified boot device {{ baremetal_boot_device }}"
+
+- name: Template out config file with details
+  ansible.builtin.template:
+    src: baremetal-hosts.yaml.j2
+    dest: "{{ baremetal_config_output }}/{{ inventory_hostname }}.yaml"
+    mode: u+r,g-rwx,o-rwx
+
+...

@@ -1,0 +1,19 @@
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  annotations:
+    bmac.agent-install.openshift.io/hostname: {{ baremetal_hostname }}
+    bmac.agent-install.openshift.io/role: {{ baremetal_role }}
+  labels:
+    infraenvs.agent-install.openshift.io: {{ baremetal_clustername }}
+    cluster-name: {{ baremetal_clustername }}
+  name: {{ baremetal_hostname }}
+spec:
+  automatedCleaningMode: metadata
+  bmc:
+    address: "idrac-virtualmedia://{{ baremetal_ipaddress }}/redfish/v1/Systems/System.Embedded.1"
+    credentialsName: {{ baremetal_credentials }}
+    disableCertificateVerification: true
+  bootMACAddress: {{ baremetal_macaddress }}
+  online: true

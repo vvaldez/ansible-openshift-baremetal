@@ -1,38 +1,38 @@
-Role Name
-=========
+# drac-discovery 
 
-A brief description of the role goes here.
+## Summary
 
-Requirements
-------------
+This role connects to a Dell DRAC via dell|emc openmanage module and collects system information about the target server. 
+The intention of this role is to use that collected information to identify the primary network boot device and extract it's MAC Address.
+It will then template out a file called bare-metal.yaml used in the installation of OpenShift from this gathered information.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role will:
 
-Role Variables
---------------
+* Connect to a Dell DRAC using the IP, username and password
+* Collect system information about the target server
+* Identify the boot device
+* Extract the MAC Address associated with the boot device
+* Some of these variables can be specified as hints to reduce the discovery time
+* Template a yaml file with the discovered information
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Role Variables
 
-Dependencies
-------------
+The following variables must be set on each invocation. Any listed defaults are also in `defaults/main.yml`
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+| Variable | Type | Description | Example Value
+| --- | --- | --- | ---
+`drac_discovery_hostname` | string | Value used for the hosts's cluster name | {{ inventory_hostname }}
+`drac_discovery_role` | string | The OpenShift role to assign to this server | master, worker
+`drac_discovery_clustername` | string | The OpenShift cluster name | example
+`drac_discovery_ipaddress` | string | IP Address of the DRAC device | 192.168.0.1
+`drac_discovery_validate_certs` | bool | Whether to validate certs| true, false
+`drac_discovery_credentials` | string | Credential name | example-drac-credentials
+`drac_discovery_config_output` | string | Directory to store generated config files | "{{ playbook_dir }}/configs/"
+`drac_discovery_boot_device` | string | FQDD name of the device to use for primary network booting | NIC.Integrated.1-2-1
+`drac_discovery_macaddress` | string | MAC Address of the boot device | FE:ED:DE:AD:BE:EF
 
-Example Playbook
-----------------
+## Notes
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+* If `drac_discovery_boot_device` or `drac_discovery_macaddress` is not specified, the DRAC will be connected to and data discovered from it
+* If `drac_discovery_boot_device` is specified but not `drac_discovery_macaddress`, the DRAC will be connected to and the corresponding MAC Adress matching the `drac_discovery_boot_device` will be obtained
+* If `drac_discovery_boot_device` and `drac_discovery_macaddress` are both specified, then there is no reason to connect to the DRAC. In this case, the known MAC Address is simply templated into the yaml file, without discovery.

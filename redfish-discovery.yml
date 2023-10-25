@@ -1,0 +1,42 @@
+---
+- name: Setup OpenShift manifest for iLO servers
+  hosts: baremetal_ilo
+  connection: local
+  gather_facts: false
+  vars:
+    config_directory: "{{ playbook_dir }}/configs/"
+  tasks:
+    - name: Remove any temporary directory
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: absent
+      run_once: yes
+
+    - name: Setup temporary directory to hold config files
+      ansible.builtin.file:
+        path: "{{ config_directory }}/fragments/"
+        state: directory
+        mode: u+rw
+      run_once: yes
+
+    - name: Imclude Dell DRAC discovery role
+      ansible.builtin.include_role:
+        name: redfish-discovery
+      vars:
+        baremetal_config_output: "{{ config_directory }}/fragments/"
+        baremetal_hostname: "{{ inventory_hostname }}"
+        baremetal_username: "{{ ilo_username }}"
+        baremetal_password: "{{ ilo_password }}"
+        baremetal_role: master
+        baremetal_clustername: example1
+        baremetal_ipaddress: "{{ oob_ipaddr }}"
+        baremetal_credentials: "{{ baremetal_clustername }}-drac-credentials"
+        baremetal_boot_device: "{{ boot_device }}"
+        # baremetal_macaddress: "{{ boot_macaddr }}"
+
+    - name: Combine all templates into a single file
+      ansible.builtin.assemble:
+        src: "{{ config_directory }}/fragments/"
+        dest: "{{ config_directory }}/bare-metal.yaml"
+      run_once: yes
+...

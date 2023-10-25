@@ -1,0 +1,12 @@
+---
+baremetal_hostname: server1.example.com
+baremetal_username: ipmi
+baremetal_password: ipmi
+baremetal_validate_certs: false
+baremetal_config_output: "{{ playbook_dir }}"
+baremetal_role: master
+baremetal_clustername: example1
+baremetal_ipaddress: 127.0.0.1
+baremetal_credentials: example1-drac-credentials
+baremetal_boot_device:
+# baremetal_macaddress:
