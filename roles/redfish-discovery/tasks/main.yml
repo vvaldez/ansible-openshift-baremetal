@@ -32,7 +32,7 @@
       - baremetal_boot_device | length > 0
     fail_msg:
       - "You must specify which of the discovered devices is used as the primary boot device."
-      - "Specify the correct FQDD boot device as the variable 'boot_device' for this host from the list above."
+      - "Specify the correct boot device as the variable 'boot_device' for this host from the list above."
     success_msg:
       - "Specified boot device of {{ baremetal_boot_device }} will be used to obtain a MAC Address."
 
