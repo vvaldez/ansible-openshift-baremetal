@@ -1,6 +1,6 @@
 ---
-- name: Setup OpenShift manifest for iLO servers
-  hosts: baremetal_ilo
+- name: Setup OpenShift manifest for baremetal servers
+  hosts: baremetal
   connection: local
   gather_facts: false
   vars:
@@ -19,14 +19,14 @@
         mode: u+rw
       run_once: yes
 
-    - name: Imclude Dell DRAC discovery role
+    - name: Include Redfish discovery role
       ansible.builtin.include_role:
         name: redfish-discovery
       vars:
         baremetal_config_output: "{{ config_directory }}/fragments/"
         baremetal_hostname: "{{ inventory_hostname }}"
-        baremetal_username: "{{ ilo_username }}"
-        baremetal_password: "{{ ilo_password }}"
+        baremetal_username: "{{ oob_username }}"
+        baremetal_password: "{{ oob_password }}"
         baremetal_role: master
         baremetal_clustername: example1
         baremetal_ipaddress: "{{ oob_ipaddr }}"
